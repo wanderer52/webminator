@@ -1,6 +1,7 @@
 use regex::Regex;
 use reqwest::blocking::Client;
 use std::env;
+use std::process;
 
 fn get_thread_url() -> Result<String, String> {
     let args: Vec<String> = env::args().collect();
@@ -43,11 +44,11 @@ fn get_thread_source(url: &String) -> Result<String, String> {
 fn main() {
     let url = get_thread_url().unwrap_or_else(|err| {
         eprintln!("Error: {err}");
-        String::new()
+        process::exit(0)
     });
 
     let source = get_thread_source(&url).unwrap_or_else(|err| {
         eprintln!("Error: {err}");
-        String::new()
+        process::exit(0)
     });
 }
