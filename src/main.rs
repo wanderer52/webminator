@@ -122,7 +122,7 @@ fn main() {
 
     let title = get_title(&source).unwrap_or_else(|err| {
         eprintln!("Error: {err}");
-        process::exit(0)
+        String::from("Untitled Thread")
     });
 
     let webm_list = build_webm_list(&source).unwrap_or_else(|err| {
