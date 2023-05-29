@@ -9,7 +9,14 @@ fn get_thread_url() -> Result<String, String> {
         ));
     }
 
-    let re = Regex::new(r"https://boards\.(4chan|4channel)\.org/[[:alnum:]]+/thread/\d+");
+    let re = Regex::new(r"https://boards\.(4chan|4channel)\.org/[[:alnum:]]+/thread/\d+")
+        .expect("Failed to compile regular expression.");
+    let url = &args[1];
+    if !re.is_match(url) {
+        return Err(String::from("Invalid 4Chan url."));
+    }
+
+    Ok(url.to_string())
 }
 
 fn main() {}
