@@ -3,6 +3,7 @@ use reqwest::blocking::Client;
 use std::collections::HashSet;
 use std::env;
 use std::process;
+use std::process::{Command, Stdio};
 
 fn get_thread_url() -> Result<String, String> {
     let args: Vec<String> = env::args().collect();
@@ -63,6 +64,37 @@ fn build_webm_list(source: &String) -> Result<Vec<String>, String> {
     Ok(webm_list)
 }
 
+fn play_webms(webm_list: &Vec<String>) -> Result<(), String> {
+    let vlc_executable = "vlc";
+
+    let mut vlc_command = Command::new(vlc_executable);
+    for webm_url in webm_list {
+        vlc_command.arg(webm_url);
+    }
+
+    vlc_command
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+
+    let mut child = vlc_command
+        .spawn()
+        .map_err(|err| format!("Failed to spawn VLC media player: {}", err))?;
+
+    let exit_status = child
+        .wait()
+        .map_err(|err| format!("Failed to wait for VLC media player: {}", err))?;
+
+    if exit_status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "VLC media player exited with an error: {:?}",
+            exit_status.code()
+        ))
+    }
+}
+
 fn main() {
     let url = get_thread_url().unwrap_or_else(|err| {
         eprintln!("Error: {err}");
@@ -73,4 +105,16 @@ fn main() {
         eprintln!("Error: {err}");
         process::exit(0)
     });
+
+    let webm_list = build_webm_list(&source).unwrap_or_else(|err| {
+        eprintln!("Error: {err}");
+        process::exit(0)
+    });
+
+    println!("Now playing {} WEBMS from thread: {url}", webm_list.len());
+
+    match play_webms(&webm_list) {
+        Ok(_) => {}
+        Err(err) => eprintln!("Error {err}"),
+    }
 }
