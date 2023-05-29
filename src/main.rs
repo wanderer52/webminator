@@ -19,4 +19,11 @@ fn get_thread_url() -> Result<String, String> {
     Ok(url.to_string())
 }
 
-fn main() {}
+fn main() {
+    match get_thread_url() {
+        Ok(link) => {
+            let url = link;
+        }
+        Err(err) => println!("Error: {err}"),
+    }
+}
