@@ -43,6 +43,20 @@ fn get_thread_source(url: &String) -> Result<String, String> {
     }
 }
 
+fn get_title(source: &String) -> Result<String, String> {
+    let regex_str = r#"<span class="subject">([^<]+)</span>"#;
+    let regex =
+        Regex::new(regex_str).map_err(|err| format!("Regex compilation failed: {}", err))?;
+
+    if let Some(capture) = regex.captures(source) {
+        if let Some(title) = capture.get(1) {
+            return Ok(title.as_str().to_owned());
+        }
+    }
+
+    Err(String::from("Thread title not found in source"))
+}
+
 fn build_webm_list(source: &String) -> Result<Vec<String>, String> {
     let regex_str = r#"(?i)\/\/is2\.4chan\.org\/[a-z0-9]+\/(\d+)\.webm"#;
     let regex =
@@ -106,12 +120,20 @@ fn main() {
         process::exit(0)
     });
 
+    let title = get_title(&source).unwrap_or_else(|err| {
+        eprintln!("Error: {err}");
+        process::exit(0)
+    });
+
     let webm_list = build_webm_list(&source).unwrap_or_else(|err| {
         eprintln!("Error: {err}");
         process::exit(0)
     });
 
-    println!("Now playing {} WEBMS from thread: {url}", webm_list.len());
+    println!(
+        "Now playing {} WEBMS from thread: \"{title}\" (URL: {url})",
+        webm_list.len()
+    );
 
     match play_webms(&webm_list) {
         Ok(_) => {}
