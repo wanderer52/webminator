@@ -1,5 +1,6 @@
 use regex::Regex;
 use reqwest::blocking::Client;
+use std::collections::HashSet;
 use std::env;
 use std::process;
 
@@ -39,6 +40,27 @@ fn get_thread_source(url: &String) -> Result<String, String> {
             response.status()
         ))
     }
+}
+
+fn build_webm_list(source: &String) -> Result<Vec<String>, String> {
+    let regex_str = r#"(?i)\/\/is2\.4chan\.org\/[a-z0-9]+\/(\d+)\.webm"#;
+    let regex =
+        Regex::new(regex_str).map_err(|err| format!("Regex compilation failed: {}", err))?;
+
+    let mut webm_list: Vec<String> = Vec::new();
+    let mut unique_links: HashSet<String> = HashSet::new();
+
+    for capture in regex.captures_iter(source) {
+        if let Some(link) = capture.get(0) {
+            let mut webm_url = String::from("https:");
+            webm_url.push_str(link.as_str());
+            if unique_links.insert(webm_url.clone()) {
+                webm_list.push(webm_url);
+            }
+        }
+    }
+
+    Ok(webm_list)
 }
 
 fn main() {
