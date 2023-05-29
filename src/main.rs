@@ -41,10 +41,13 @@ fn get_thread_source(url: &String) -> Result<String, String> {
 }
 
 fn main() {
-    match get_thread_url() {
-        Ok(link) => {
-            let url = link;
-        }
-        Err(err) => println!("Error: {err}"),
-    };
+    let url = get_thread_url().unwrap_or_else(|err| {
+        eprintln!("Error: {err}");
+        String::new()
+    });
+
+    let source = get_thread_source(&url).unwrap_or_else(|err| {
+        eprintln!("Error: {err}");
+        String::new()
+    });
 }
