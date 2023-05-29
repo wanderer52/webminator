@@ -1,4 +1,5 @@
 use regex::Regex;
+use reqwest::blocking::Client;
 use std::env;
 
 fn get_thread_url() -> Result<String, String> {
@@ -19,11 +20,31 @@ fn get_thread_url() -> Result<String, String> {
     Ok(url.to_string())
 }
 
+fn get_thread_source(url: &String) -> Result<String, String> {
+    let client = Client::new();
+
+    let response = client
+        .get(url)
+        .send()
+        .map_err(|err| format!("Failed to send HTTP request: {}", err))?;
+
+    if response.status().is_success() {
+        response
+            .text()
+            .map_err(|err| format!("Failed to retrieve response body: {}", err))
+    } else {
+        Err(format!(
+            "HTTP request failed with status code: {}",
+            response.status()
+        ))
+    }
+}
+
 fn main() {
     match get_thread_url() {
         Ok(link) => {
             let url = link;
         }
         Err(err) => println!("Error: {err}"),
-    }
+    };
 }
